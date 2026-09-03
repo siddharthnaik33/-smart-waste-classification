@@ -1,3 +1,4 @@
+
 import tensorflow as tf
 import numpy as np
 import io
@@ -36,9 +37,9 @@ app.add_middleware(
 # Model Path
 # =========================
 
-MODEL_PATH = Path(
-    "models/best_finetuned_mobilenet.keras"
-)
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = BASE_DIR / "models" / "best_finetuned_mobilenet.keras"
 
 
 # =========================
@@ -93,7 +94,7 @@ async def predict(
 ):
 
     # Check uploaded file
-    if not file.content_type.startswith("image/"):
+    if not file.content_type or not file.content_type.startswith("image/"):
 
         raise HTTPException(
             status_code=400,
@@ -105,10 +106,19 @@ async def predict(
     image_bytes = await file.read()
 
 
-    # Open image
-    image = Image.open(
-        io.BytesIO(image_bytes)
-    ).convert("RGB")
+    # Open uploaded image
+    try:
+
+        image = Image.open(
+            io.BytesIO(image_bytes)
+        ).convert("RGB")
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Unable to read the uploaded image."
+        )
 
 
     # Resize image
