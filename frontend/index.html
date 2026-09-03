@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+```
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Waste Classifier</title>
+
+<style>
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        min-height: 100vh;
+
+        background: linear-gradient(
+            135deg,
+            #0f172a,
+            #134e4a,
+            #064e3b
+        );
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        padding: 30px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 850px;
+
+        background: rgba(255, 255, 255, 0.96);
+
+        border-radius: 25px;
+
+        padding: 45px;
+
+        box-shadow:
+            0 25px 60px rgba(0, 0, 0, 0.35);
+
+        text-align: center;
+    }
+
+    .logo {
+        width: 75px;
+        height: 75px;
+
+        margin: auto;
+        margin-bottom: 15px;
+
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 38px;
+
+        background: linear-gradient(
+            135deg,
+            #16a34a,
+            #22c55e
+        );
+
+        box-shadow:
+            0 10px 25px rgba(34, 197, 94, 0.4);
+    }
+
+    h1 {
+        font-size: 36px;
+        color: #14532d;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #64748b;
+        font-size: 17px;
+        margin-bottom: 35px;
+    }
+
+    .upload-section {
+        border: 2px dashed #22c55e;
+
+        border-radius: 20px;
+
+        padding: 35px;
+
+        background: #f0fdf4;
+
+        transition: 0.3s;
+    }
+
+    .upload-section:hover {
+        background: #dcfce7;
+        transform: translateY(-3px);
+    }
+
+    .upload-icon {
+        font-size: 55px;
+        margin-bottom: 15px;
+    }
+
+    .upload-text {
+        font-size: 18px;
+        color: #166534;
+        margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .upload-button {
+        display: inline-block;
+
+        background: #16a34a;
+        color: white;
+
+        padding: 13px 25px;
+
+        border-radius: 10px;
+
+        cursor: pointer;
+
+        font-size: 16px;
+
+        transition: 0.3s;
+    }
+
+    .upload-button:hover {
+        background: #15803d;
+        transform: scale(1.05);
+    }
+
+    #preview-container {
+        display: none;
+        margin-top: 25px;
+    }
+
+    #preview {
+        max-width: 350px;
+        max-height: 280px;
+
+        border-radius: 18px;
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .predict-button {
+        margin-top: 25px;
+
+        border: none;
+
+        padding: 15px 35px;
+
+        border-radius: 12px;
+
+        font-size: 17px;
+
+        font-weight: bold;
+
+        cursor: pointer;
+
+        color: white;
+
+        background: linear-gradient(
+            135deg,
+            #16a34a,
+            #059669
+        );
+
+        transition: 0.3s;
+
+        box-shadow:
+            0 8px 20px rgba(22, 163, 74, 0.35);
+    }
+
+    .predict-button:hover {
+        transform: translateY(-3px);
+    }
+
+    .predict-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    #result {
+        margin-top: 30px;
+    }
+
+    .result-card {
+        padding: 25px;
+
+        border-radius: 18px;
+
+        background: linear-gradient(
+            135deg,
+            #ecfdf5,
+            #dcfce7
+        );
+
+        border: 1px solid #86efac;
+
+        animation: appear 0.5s ease;
+    }
+
+    .result-title {
+        color: #166534;
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .waste-name {
+        font-size: 32px;
+        font-weight: bold;
+        color: #15803d;
+        margin-bottom: 15px;
+    }
+
+    .confidence-box {
+        margin-top: 15px;
+    }
+
+    .confidence-label {
+        color: #475569;
+        margin-bottom: 8px;
+    }
+
+    .confidence-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #0f766e;
+    }
+
+    .progress-container {
+        width: 100%;
+        height: 12px;
+
+        background: #d1fae5;
+
+        border-radius: 10px;
+
+        margin-top: 15px;
+
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+
+        background: linear-gradient(
+            90deg,
+            #22c55e,
+            #059669
+        );
+
+        border-radius: 10px;
+    }
+
+    .error {
+        background: #fef2f2;
+        color: #dc2626;
+
+        padding: 18px;
+
+        border-radius: 12px;
+
+        border: 1px solid #fecaca;
+    }
+
+    .loading {
+        color: #166534;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .footer {
+        margin-top: 30px;
+
+        color: #94a3b8;
+
+        font-size: 14px;
+    }
+
+    @keyframes appear {
+
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    }
+
+    @media (max-width: 600px) {
+
+        .container {
+            padding: 25px;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
+        #preview {
+            max-width: 100%;
+        }
+
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<div class="container">
+
+    <div class="logo">
+        ♻️
+    </div>
+
+    <h1>
+        Smart Waste Classifier
+    </h1>
+
+    <p class="subtitle">
+        Upload a waste image and let AI identify its category
+    </p>
+
+
+    <div class="upload-section">
+
+        <div class="upload-icon">
+            📸
+        </div>
+
+        <p class="upload-text">
+            Select an image for AI analysis
+        </p>
+
+        <label
+            for="imageInput"
+            class="upload-button"
+        >
+            Choose Image
+        </label>
+
+        <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+        >
+
+    </div>
+
+
+    <div id="preview-container">
+
+        <img
+            id="preview"
+            alt="Waste Image Preview"
+        >
+
+        <br>
+
+        <button
+            class="predict-button"
+            id="predictButton"
+        >
+            🤖 Analyze Waste
+        </button>
+
+    </div>
+
+
+    <div id="result"></div>
+
+
+    <div class="footer">
+        Powered by MobileNetV2 & FastAPI
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const imageInput =
+        document.getElementById("imageInput");
+
+    const preview =
+        document.getElementById("preview");
+
+    const previewContainer =
+        document.getElementById(
+            "preview-container"
+        );
+
+    const result =
+        document.getElementById("result");
+
+    const predictButton =
+        document.getElementById(
+            "predictButton"
+        );
+
+
+    imageInput.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                imageInput.files[0];
+
+
+            if (!file) {
+
+                previewContainer.style.display =
+                    "none";
+
+                return;
+
+            }
+
+
+            preview.src =
+                URL.createObjectURL(file);
+
+
+            previewContainer.style.display =
+                "block";
+
+
+            result.innerHTML = "";
+
+        }
+    );
+
+
+    predictButton.addEventListener(
+        "click",
+        predictWaste
+    );
+
+
+    async function predictWaste() {
+
+        const file =
+            imageInput.files[0];
+
+
+        if (!file) {
+
+            result.innerHTML = `
+                <div class="error">
+                    Please select an image first.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        result.innerHTML = `
+            <div class="loading">
+                🤖 AI is analyzing your waste image...
+            </div>
+        `;
+
+
+        predictButton.disabled = true;
+
+        predictButton.innerHTML =
+            "⏳ Analyzing...";
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://127.0.0.1:8000/predict",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    "Prediction failed"
+                );
+
+            }
+
+
+            result.innerHTML = `
+
+                <div class="result-card">
+
+                    <div class="result-title">
+                        🤖 AI Prediction Result
+                    </div>
+
+
+                    <div class="waste-name">
+                        ${data.predicted_class}
+                    </div>
+
+
+                    <div class="confidence-box">
+
+                        <div class="confidence-label">
+                            AI Confidence
+                        </div>
+
+
+                        <div class="confidence-number">
+                            ${data.confidence}%
+                        </div>
+
+
+                        <div class="progress-container">
+
+                            <div
+                                class="progress-bar"
+                                style="
+                                    width:
+                                    ${data.confidence}%
+                                "
+                            >
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            result.innerHTML = `
+
+                <div class="error">
+
+                    ❌ ${error.message}
+
+                    <br><br>
+
+                    Make sure the FastAPI
+                    server is running.
+
+                </div>
+
+            `;
+
+        }
+
+
+        finally {
+
+            predictButton.disabled = false;
+
+            predictButton.innerHTML =
+                "🤖 Analyze Waste";
+
+        }
+
+    }
+
+</script>
+```
+
+</body>
+
+</html>
