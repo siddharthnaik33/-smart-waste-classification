@@ -1,0 +1,34 @@
+WASTE RECYCLING GUIDE
+
+Cardboard:
+Cardboard boxes and clean corrugated cardboard are generally recyclable. Remove plastic wrapping, tape, and food contamination when possible. Flatten cardboard before placing it in the recycling bin. Wet or heavily food-contaminated cardboard may not be recyclable and can sometimes be composted depending on local rules.
+
+Food Organics:
+Food waste includes fruit and vegetable scraps, leftover food, and other biodegradable organic materials. Food organics are usually better suited for composting or an organic-waste collection program rather than regular recycling. Avoid mixing food waste with paper, plastic, glass, or metal recycling.
+
+Glass:
+Glass bottles and jars are commonly recyclable. Rinse containers and remove food or liquid residue when possible. Do not place broken glass, mirrors, ceramics, or heat-resistant cookware in normal glass recycling unless local recycling rules specifically allow them. Separate colors only if required by the local recycling program.
+
+Metal:
+Metal waste such as aluminum cans and steel food cans is commonly recyclable. Empty and rinse containers before recycling. Aluminum cans should not normally be placed in general waste when a metal recycling program is available. Sharp metal objects should be handled carefully and according to local disposal rules.
+
+Miscellaneous Trash:
+Miscellaneous trash includes materials that may not belong to standard recycling categories. These items should be checked individually because some may require special disposal. Avoid placing unknown or contaminated materials into recycling bins because they can contaminate recyclable materials. Follow local waste-management guidelines.
+
+Paper:
+Clean and dry paper is generally recyclable. Newspapers, office paper, magazines, and many paper sheets can be recycled. Avoid recycling paper that is heavily contaminated with food, oil, chemicals, or other substances. Shredded paper may require special handling depending on the local recycling facility.
+
+Plastic:
+Some plastic containers and packaging can be recyclable, but recyclability depends on the type of plastic and local recycling rules. Clean and empty plastic containers before recycling. Plastic bags and films often require separate collection and should not be placed in standard recycling bins unless accepted locally. Avoid assuming that every plastic item is recyclable.
+
+Textile Trash:
+Textiles such as clothes, fabric, and other materials should preferably be reused, donated, repaired, or sent to a textile-recycling program when available. Do not automatically place textiles into regular recycling bins. Heavily contaminated or damaged textiles may require specialized disposal.
+
+Vegetation:
+Vegetation includes leaves, grass, branches, and plant material. These materials are generally better suited for composting, garden-waste collection, or organic-waste processing rather than regular recycling. Large branches may require separate garden-waste collection according to local regulations.
+
+GENERAL RECYCLING ADVICE:
+Always check local recycling rules because accepted materials differ between cities and recycling facilities. Clean and dry recyclable materials when possible. Keep food and liquid contamination away from recyclable materials. Reuse or repair items before recycling when practical. When an item is uncertain, check the local waste-management authority rather than placing it into the recycling bin.
+
+AI ASSISTANT BEHAVIOR:
+When answering a waste-disposal question, identify the waste category first. Use the retrieved recycling information as supporting context. Give a concise recommendation explaining whether the item should generally be recycled, composted, reused, donated, or disposed of through a specialized waste program. Mention that local recycling rules can differ. Do not claim that an item is universally recyclable.
