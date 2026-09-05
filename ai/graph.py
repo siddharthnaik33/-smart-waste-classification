@@ -1,10 +1,29 @@
-
 from pathlib import Path
 from typing import TypedDict
+import os
+
+from google import genai
+from google.genai import types
 
 from langgraph.graph import StateGraph, END
 from langchain_chroma import Chroma
-from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_core.embeddings import Embeddings
+
+
+# =========================================================
+# Environment
+# =========================================================
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise RuntimeError(
+        "GEMINI_API_KEY environment variable is not set."
+    )
+
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
 
 # =========================================================
@@ -12,16 +31,47 @@ from langchain_ollama import OllamaEmbeddings, ChatOllama
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+
 VECTORSTORE_DIR = BASE_DIR / "vectorstore"
 
 
 # =========================================================
-# Embedding Model
+# Gemini Embeddings
 # =========================================================
 
-embeddings = OllamaEmbeddings(
-    model="nomic-embed-text"
-)
+class GeminiEmbeddings(Embeddings):
+
+    def embed_documents(self, texts):
+
+        result = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=texts,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_DOCUMENT",
+                output_dimensionality=768
+            )
+        )
+
+        return [
+            embedding.values
+            for embedding in result.embeddings
+        ]
+
+    def embed_query(self, text):
+
+        result = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=text,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY",
+                output_dimensionality=768
+            )
+        )
+
+        return result.embeddings[0].values
+
+
+embeddings = GeminiEmbeddings()
 
 
 # =========================================================
@@ -31,16 +81,6 @@ embeddings = OllamaEmbeddings(
 vectorstore = Chroma(
     persist_directory=str(VECTORSTORE_DIR),
     embedding_function=embeddings
-)
-
-
-# =========================================================
-# LLM
-# =========================================================
-
-llm = ChatOllama(
-    model="qwen2.5:0.5b",
-    temperature=0
 )
 
 
@@ -95,8 +135,6 @@ def retrieve_information(state: WasteState):
         f"{waste_class}"
     )
 
-    # Retrieve ONLY the document matching
-    # the predicted waste category.
     documents = vectorstore.similarity_search(
         query=waste_class,
         k=1,
@@ -134,7 +172,7 @@ def retrieve_information(state: WasteState):
 
 
 # =========================================================
-# Node 3: Generate AI Response
+# Node 3: Generate AI Response using Gemini
 # =========================================================
 
 def generate_response(state: WasteState):
@@ -177,15 +215,20 @@ Recommendation:
 
 Follow-up question:
 <one relevant question>
-
-Answer:
 """
 
-    print("[LLM] Generating response...")
+    print("[LLM] Generating response using Gemini...")
 
-    result = llm.invoke(prompt)
+    result = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=300
+        )
+    )
 
-    state["response"] = result.content
+    state["response"] = result.text
 
     return state
 
@@ -209,7 +252,6 @@ def route_after_confidence(state: WasteState):
 graph_builder = StateGraph(WasteState)
 
 
-# Add nodes
 graph_builder.add_node(
     "confidence_check",
     check_confidence
@@ -226,13 +268,11 @@ graph_builder.add_node(
 )
 
 
-# Entry point
 graph_builder.set_entry_point(
     "confidence_check"
 )
 
 
-# Conditional routing
 graph_builder.add_conditional_edges(
     "confidence_check",
     route_after_confidence,
@@ -243,31 +283,30 @@ graph_builder.add_conditional_edges(
 )
 
 
-# RAG → LLM
 graph_builder.add_edge(
     "retrieve",
     "generate"
 )
 
 
-# LLM → END
 graph_builder.add_edge(
     "generate",
     END
 )
 
 
-# Compile graph
 graph = graph_builder.compile()
 
 
 # =========================================================
-# Test
+# Local Test
 # =========================================================
 
 if __name__ == "__main__":
 
-    print("\n========== WASTE AI AGENT TEST ==========\n")
+    print(
+        "\n========== WASTE AI AGENT TEST ==========\n"
+    )
 
     waste_class = input(
         "Enter waste class: "

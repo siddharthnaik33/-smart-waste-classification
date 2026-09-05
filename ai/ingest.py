@@ -1,8 +1,11 @@
 from pathlib import Path
+import os
 
-from langchain_community.document_loaders import TextLoader
+from google import genai
+from google.genai import types
+
 from langchain_core.documents import Document
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 from langchain_chroma import Chroma
 
 
@@ -10,19 +13,69 @@ BASE_DIR = Path(__file__).resolve().parent
 KNOWLEDGE_FILE = BASE_DIR / "knowledge" / "recycling_guide.txt"
 VECTORSTORE_DIR = BASE_DIR / "vectorstore"
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Load the knowledge file
-loader = TextLoader(
-    str(KNOWLEDGE_FILE),
-    encoding="utf-8"
-)
-
-documents = loader.load()
-
-text = documents[0].page_content
+if not GEMINI_API_KEY:
+    raise ValueError(
+        "GEMINI_API_KEY environment variable is not set."
+    )
 
 
-# Waste categories
+# --------------------------------------------------
+# Gemini Client
+# --------------------------------------------------
+
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+
+# --------------------------------------------------
+# Gemini Embeddings Wrapper
+# --------------------------------------------------
+
+class GeminiEmbeddings(Embeddings):
+
+    def embed_documents(self, texts):
+        embeddings = []
+
+        for text in texts:
+            response = client.models.embed_content(
+                model="gemini-embedding-001",
+                contents=text,
+                config=types.EmbedContentConfig(
+                    task_type="RETRIEVAL_DOCUMENT",
+                    output_dimensionality=768
+                )
+            )
+
+            embeddings.append(response.embeddings[0].values)
+
+        return embeddings
+
+    def embed_query(self, text):
+        response = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=text,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY",
+                output_dimensionality=768
+            )
+        )
+
+        return response.embeddings[0].values
+
+
+# --------------------------------------------------
+# Load Knowledge File
+# --------------------------------------------------
+
+with open(KNOWLEDGE_FILE, "r", encoding="utf-8") as f:
+    text = f.read()
+
+
+# --------------------------------------------------
+# Waste Categories
+# --------------------------------------------------
+
 categories = [
     "Cardboard",
     "Food Organics",
@@ -36,7 +89,10 @@ categories = [
 ]
 
 
-# Create one document for each category
+# --------------------------------------------------
+# Create One Document Per Category
+# --------------------------------------------------
+
 category_documents = []
 
 for category in categories:
@@ -49,7 +105,6 @@ for category in categories:
         print(f"Warning: {category} not found")
         continue
 
-    # Find the next category
     next_indexes = []
 
     for next_category in categories:
@@ -88,13 +143,17 @@ print(
 )
 
 
-# Embedding model
-embeddings = OllamaEmbeddings(
-    model="nomic-embed-text"
-)
+# --------------------------------------------------
+# Gemini Embedding Model
+# --------------------------------------------------
+
+embeddings = GeminiEmbeddings()
 
 
+# --------------------------------------------------
 # Create ChromaDB
+# --------------------------------------------------
+
 vectorstore = Chroma.from_documents(
     documents=category_documents,
     embedding=embeddings,
@@ -104,3 +163,5 @@ vectorstore = Chroma.from_documents(
 
 print("ChromaDB vector store created successfully!")
 print(f"Saved at: {VECTORSTORE_DIR}")
+print("Embedding model: gemini-embedding-001")
+print("Embedding dimension: 768")
